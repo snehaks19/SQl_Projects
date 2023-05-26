@@ -70,13 +70,11 @@ select * ,rank() over(partition by userid order by created_date)rank from sales)
 
 
 
-
 4.What is the most purchased item on zomato and how many times each customer purchased it?
 
 select userid,count(product_id) as cnt from sales where product_id=
 (select top 1 product_id from sales group by product_id order by count(product_id) desc)
 group by userid;
-
 
 
 
@@ -89,3 +87,52 @@ where rank=1
 
 
 
+6.Which item was purchased first by each customer after they became a member
+
+select b.userid,b.created_date,b.product_id from
+(select a.*,rank() over(partition by userid order by created_date asc)as rank from 
+(select s.userid,s.created_date,s.product_id from sales s inner join goldusers_signup g on s.userid=g.userid 
+and created_date>=g.gold_signup_date)a)b 
+where rank=1
+
+
+
+7.Which item was purchased just before the customer became a member?
+
+select b.userid,b.product_id from(
+select a.*,rank() over(partition by userid order by created_date asc)as rank from
+(select s.userid,s.created_date,g.gold_signup_date,s.product_id from sales s inner join goldusers_signup g on s.userid=g.userid 
+and created_date<=gold_signup_date)a)b where rank=1
+
+
+
+8.What is the orders and total amount spent by each customer before they became a member?
+
+select userid,count(created_date)order_purchased,sum(price)total_amount from
+(select a.*,b.price from
+(select s.userid,s.created_date,g.gold_signup_date,s.product_id from sales s inner join goldusers_signup g on s.userid=g.userid 
+and created_date<=gold_signup_date)a inner join  product b on a.product_id=b.product_id)c group by userid
+
+
+9.If buying each products generates points for eg 5rs=2 zomato points (1 zomato points=2.5rs) and each product have different purchase points for eg for p1,5Rs=1 zomato point,
+   for p2,10Rs=5 zomato points (1 zomato point=2rs) for p3,5rs=1 zomato point.
+   Calculate the points collected by each customer and for which product most points have been till now?
+
+   select userid,sum(points)*2.5 as total_cashbacks from 
+   (select c.*,total/amt_for_1_zomato_point as points from
+   (select b.*,case when product_id=1 then 5 when product_id=2 then 2 when product_id=3 then 5 else 0 end as amt_for_1_zomato_point from 
+   (select a.userid,a.product_id,sum(a.price)as total from
+   (select s.*,p.price from sales s inner join product p on s.product_id=p.product_id)a group by userid,product_id)b)c)d group by userid;
+
+
+   select * from
+   (select *,rank() over(order by total_points desc)rank from
+   (select product_id,sum(points)*2.5 as total_points from 
+   (select c.*,total/amt_for_1_zomato_point as points from
+   (select b.*,case when product_id=1 then 5 when product_id=2 then 2 when product_id=3 then 5 else 0 end as amt_for_1_zomato_point from 
+   (select a.userid,a.product_id,sum(a.price)as total from
+   (select s.*,p.price from sales s inner join product p on s.product_id=p.product_id)a group by userid,product_id)b)c)d group by product_id)e)f where rank=1;
+
+
+
+10.
