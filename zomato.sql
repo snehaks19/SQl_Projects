@@ -144,3 +144,15 @@ they earn 5 zomato points for every 10 rs spent who earned more 1 or 3 and what 
 (select s.userid,s.created_date,g.gold_signup_date,s.product_id from sales s inner join goldusers_signup g on s.userid=g.userid 
 and created_date>=gold_signup_date and created_date<=DATEADD(year,1,gold_signup_date))a
 inner join product p on a.product_id=p.product_id);
+
+11.Rank all transactions of each customer?
+
+	select *,rank() over(partition by userid order by created_date)rank from sales;
+
+	
+12.Rank all transactions of each member whenever they are a zomato gold member for every no gold member transactions mark as na
+
+select b.*,case when rank=0 then 'NA' else rank end as rnk from
+(select a.*,cast((case when gold_signup_date is null then 0 else rank() over(partition by userid order by gold_signup_date desc)end)as varchar) as rank from 
+(select s.userid,s.created_date,g.gold_signup_date,s.product_id from sales s left join goldusers_signup g on s.userid=g.userid 
+and created_date>=gold_signup_date)a)b;
