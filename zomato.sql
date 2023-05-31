@@ -57,7 +57,7 @@ group by s.userid;
 
 
 
-2. How many days has each customer spent on zomato?
+2.How many days has each customer spent on zomato?
 
 select userid,COUNT(distinct created_date)as no_of_days from sales group by userid
 
