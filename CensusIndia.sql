@@ -64,3 +64,6 @@ select distinct state from Data1 where LOWER(state) like 'a%' or LOWER(state) li
 
 select distinct state from Data1 where LOWER(state) like '%a' 
 
+--joining two tables
+
+select a.district,a.state,a.Sex_Ratio,b.Population from Data1 a inner join Data2 b on a.District=b.District
