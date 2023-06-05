@@ -67,3 +67,20 @@ select distinct state from Data1 where LOWER(state) like '%a'
 --joining two tables
 
 select a.district,a.state,a.Sex_Ratio,b.Population from Data1 a inner join Data2 b on a.District=b.District
+
+-- Total Number of males and females
+
+--males+females=population    ------------(1)
+--females/males=sexratio     --------------(2)
+--females=population-males   -----------(3)
+--population-males=sexratio*males
+--population=males(sexratio+1)
+--males=population/(sexratio+1)
+--females=Population(1-(1/(sexratio+1))
+
+
+select d.state,sum(d.males) tot_males,sum(d.females) tot_females from
+(select c.District,c.State,round(c.Population/(c.Sex_Ratio+1),0) as males,round(c.population*(1-1/(c.sex_ratio+1)),0) as females from
+(select a.District,a.State,a.sex_ratio/1000 as sex_ratio,b.population
+from Data1 a 
+inner join Data2 b on a.district=b.district)c)d group by d.State
